@@ -35,10 +35,10 @@ class User(AbstractUser):
     dob = models.DateField(null=True, blank=True) 
     gender = models.CharField(
         max_length=10, choices=GENDER_CHOICES, null=True, blank=True
-    ) 
+    )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['phonenumber']
+    REQUIRED_FIELDS = ['password']
 
     objects = CustomUser()
 
