@@ -2,23 +2,30 @@ from rest_framework import serializers
 from .models import User, OTPVerification
 
 
-# Step 1: User Info (Collect Email and other info)
+# ✅ Step 1: Collect User Info (Email & Basic Details)
 class EmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'phone_number', 'dob', 'gender']
-
+        fields = ['email', 'first_name', 'last_name', 'phonenumber', 'dob', 'gender']
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        print("Creating User with Data:", validated_data)  # Debugging output
+        
+        user, created = User.objects.get_or_create(email=validated_data["email"], defaults=validated_data)
+
+        if not created:  # If the user exists, update their details
+            for key, value in validated_data.items():
+                setattr(user, key, value)
+            user.save()
+
+        return user
 
 
-# Step 2: OTP Verification (Only OTP is required)
+# ✅ Step 2: OTP Verification (Only OTP is required)
 class OTPVerifySerializer(serializers.Serializer):
     otp_code = serializers.CharField(max_length=6)
-    
+
     def validate(self, data):
-        email = data['email']
         otp_code = data['otp_code']
         
         otp_instance = OTPVerification.objects.filter(otp_code=otp_code).first()
@@ -32,7 +39,7 @@ class OTPVerifySerializer(serializers.Serializer):
         return data
 
 
-# Step 3: Final Registration (Full user details)
+# ✅ Step 3: Final User Registration
 class AccountSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
@@ -45,10 +52,9 @@ class AccountSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data['password'] != data['confirmPassword']:
             raise serializers.ValidationError("Passwords do not match.")
-        try:
-            user = User.objects.get(email=data['email'])
-        except User.DoesNotExist:
-            raise serializers.ValidationError({"email": "User not found. Please restart the registration process."})
+        
+        if not User.objects.filter(email=data['email']).exists():
+            raise serializers.ValidationError({"email": "Email not registered. Please complete OTP verification first."})
 
         return data
     
@@ -56,9 +62,3 @@ class AccountSerializer(serializers.ModelSerializer):
         instance.password = validated_data['password']
         instance.save()
         return instance
-    
-    
-
-    # def create(self, validated_data):
-    #     validated_data.pop('confirmPassword')
-    #     return User.objects.create_user(**validated_data)

@@ -25,9 +25,8 @@ class CustomUser(BaseUserManager):
 
 class User(AbstractUser):
     GENDER_CHOICES = (
-        ('male', 'Male'),
-        ('female', 'Female'),
-        ('other', 'Other'),
+        ('male', 'male'),
+        ('female', 'female')
     )
 
     email = models.EmailField(unique=True)
@@ -36,9 +35,10 @@ class User(AbstractUser):
     gender = models.CharField(
         max_length=10, choices=GENDER_CHOICES, null=True, blank=True
     )
+    username=None
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['password']
+    REQUIRED_FIELDS = []
 
     objects = CustomUser()
 
@@ -52,7 +52,7 @@ class OTPVerification(models.Model):
     is_used = models.BooleanField(default=False)  # Optional, prevents reuse
 
     def is_expired(self):
-        return timezone.now() > self.created_at + timedelta(minutes=5)
+        return timezone.now() > self.created_at + timedelta(minutes=10)
 
     @staticmethod
     def generate_otp():
