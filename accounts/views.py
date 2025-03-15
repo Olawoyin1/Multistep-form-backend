@@ -158,25 +158,28 @@ class RegisterUserView(APIView):
     def post(self, request):
         print("Request Data:", request.data)  # Debugging log
 
-        serializer = AccountSerializer(data=request.data)
-
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
+        
+        try:
             
-            # Check if OTP verification exists
-            otp_verified = OTPVerification.objects.filter(user__email=email).first()
-            if not otp_verified:
-                return Response({"error": "OTP verification required before registration."}, status=status.HTTP_400_BAD_REQUEST)
+            email = request.data.get("email")
+            user = User.objects.filter(email=email).first()
 
-            # Create user
-            serializer.save()
+            if not user:
+                return Response({"error": "Email not registered. Complete OTP verification first."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Delete OTP record after successful registration
-            OTPVerification.objects.filter(user__email=email).delete()
+            serializer = AccountSerializer(user, data=request.data, partial=True)  # Update existing user
 
-            return Response({"message": "User registered successfully!"}, status=status.HTTP_201_CREATED)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "User registered successfully!"}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+            
+        except Exception as e:
+            print(f"error : {e}")
+            return Response({"error": "Something went wrong! {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # ✅ Step 5: Manage User Data
@@ -185,7 +188,7 @@ class AllUsersActions(APIView):
 
     def get(self, request, pk):
         user = get_object_or_404(User, id=pk)
-        serializer = self.serializer_class(user)
+        serializer = self.serializer_class(user, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
