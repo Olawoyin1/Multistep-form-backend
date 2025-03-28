@@ -30,6 +30,7 @@ class User(AbstractUser):
     )
 
     email = models.EmailField(unique=True)
+    is_email_verified = models.BooleanField(default=False)
     phonenumber = models.CharField(max_length=14)
     dob = models.DateField(null=True, blank=True) 
     gender = models.CharField(
@@ -46,10 +47,15 @@ class User(AbstractUser):
         return self.email
 
 class OTPVerification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    email = models.EmailField()
+    first_name = models.CharField(max_length=50)
     otp_code = models.CharField(max_length=6)
+    last_name = models.CharField(max_length=50)
+    phonenumber = models.CharField(max_length=15)
+    dob = models.DateField()
+    gender = models.CharField(max_length=10)
     created_at = models.DateTimeField(auto_now_add=True)
-    is_used = models.BooleanField(default=False)  # Optional, prevents reuse
+    is_used = models.BooleanField(default=False)  
 
     def is_expired(self):
         return timezone.now() > self.created_at + timedelta(minutes=10)

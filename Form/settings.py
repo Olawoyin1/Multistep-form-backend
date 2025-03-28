@@ -2,7 +2,7 @@ from pathlib import Path
 import environ
 from decouple import config, Csv
 
-
+import smtplib
 
 
 
@@ -13,11 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-u9_lt10o!b1dz2d#-jkq$4eb2amgsbuyk@8et46o19(*$q%j(9"
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
+SECRET_KEY = config("SECRET_KEY")
+DEBUG = config("DEBUG", default=False, cast=bool)
 
 
 ALLOWED_HOSTS = [
@@ -137,20 +136,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True  # Use TLS for security
-EMAIL_USE_SSL = False  # Do not use SSL (only use one of TLS or SSL)
-
-# Your Gmail credentials
-EMAIL_HOST_USER = "yustee2017@gmail.com"
-EMAIL_HOST_PASSWORD = 'gycz glhj jwer whll' # Use an App Password (not your normal Gmail password)
-
-# Default "From" email
-DEFAULT_FROM_EMAIL = "Study Lab📚 <yustee2017@gmail.com>"
-
-
 
 
 CORS_ALLOWED_ORIGINS = [
@@ -159,3 +144,5 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:9000",
 ]
+
+
